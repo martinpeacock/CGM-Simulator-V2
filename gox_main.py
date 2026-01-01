@@ -129,20 +129,20 @@ run_sim = sidebar.button("Run Simulation")
 
 if run_sim:
 
-result = run_gox_simulation(
-    k1=k1,
-    km1=km1,
-    k2=k2,
-    k3=k3,
-    E_tot_mM=E_tot_mM_sim,
-    O2_mode=O2_mode,
-    O2_0_ppm=O2_ppm,
-    O2_bath_ppm=O2_bath_ppm,
-    glucose_steps_mM=glucose_steps_mM,
-    step_duration_s=step_duration,
-    n_points=2000,
-    k_glu_mass=k_glu_mass,
-)
+    result = run_gox_simulation(
+        k1=k1,
+        km1=km1,
+        k2=k2,
+        k3=k3,
+        E_tot_mM=E_tot_mM_sim,
+        O2_mode=O2_mode,
+        O2_0_ppm=O2_ppm,
+        O2_bath_ppm=O2_bath_ppm,
+        glucose_steps_mM=glucose_steps_mM,
+        step_duration_s=step_duration,
+        n_points=2000,
+        k_glu_mass=k_glu_mass,
+    )
 
     # Extract outputs
     t = result["t"]
