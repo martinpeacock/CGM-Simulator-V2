@@ -180,21 +180,34 @@ if run_sim:
 
     st.pyplot(fig1)
 
+   # -----------------------------
+    # Glucose in sample vs film + O2 + H2O2
     # -----------------------------
-    # Glucose in sample vs in film
-    # -----------------------------
-    st.subheader("Glucose in sample and film")
+    st.subheader("Glucose, Oxygen, and Hydrogen Peroxide")
+    
     fig2, ax_glu = plt.subplots(figsize=(8,3))
     
+    # --- Y1 axis (left): Glucose ---
     ax_glu.plot(t, glucose_sample_mM, color="tab:blue", label="Glucose in sample (mM)")
     ax_glu.plot(t, glucose_film_mM, color="tab:orange", linestyle="--", label="Glucose in film (mM)")
-    ax_glu.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide (µM)")
-    ax_glu.plot(t, O2, color="tab:red", linestyle="-.", label="Oxygen (µM)")
     
     ax_glu.set_xlabel("Time (s)")
-    ax_glu.set_ylabel("Concentration (mM / µM)")
+    ax_glu.set_ylabel("Glucose (mM)")
     ax_glu.grid(True)
-    ax_glu.legend(loc="best")
+    
+    # --- Y2 axis (right): O2 + H2O2 ---
+    ax2 = ax_glu.twinx()
+    
+    ax2.plot(t, O2, color="tab:red", linestyle="-.", label="Oxygen (µM)")
+    ax2.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide (µM)")
+    
+    ax2.set_ylabel("Oxygen / H₂O₂ (µM)")
+    
+    # --- Combined legend ---
+    # We need to merge handles from both axes
+    lines1, labels1 = ax_glu.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax_glu.legend(lines1 + lines2, labels1 + labels2, loc="best")
     
     st.pyplot(fig2)
     # -----------------------------
