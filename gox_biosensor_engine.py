@@ -197,10 +197,10 @@ def run_gox_simulation(
         "E_tot_M": E_tot_M,
         "O2_mode": O2_mode,
         "O2_bath_M": O2_bath_M,
-        "k_glu_mass": k_glu_mass,
+        "k_glu_mass": k_glu_mass,   # ← ADD THIS LINE
         "t_grid": t,
         "glu_sample_M_grid": glucose_sample_M,
-    }
+}       
 
     sol = solve_ivp(
         fun=lambda tt, yy: gox_ode_system(tt, yy, params),
