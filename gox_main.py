@@ -186,6 +186,8 @@ if run_sim:
     st.subheader("Glucose, Oxygen, and Hydrogen Peroxide")
     
     fig2, ax_glu = plt.subplots(figsize=(10,3))
+    fig2.subplots_adjust(right=0.75)  # shift plot left to make room for legend
+
     
     # --- Y1 axis (left): Glucose ---
     ax_glu.plot(t, glucose_sample_mM, color="tab:blue", label="Glucose in sample (mM)")
