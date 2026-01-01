@@ -200,8 +200,8 @@ if run_sim:
     # --- Y2 axis (right): O2 + H2O2 ---
     ax2 = ax_glu.twinx()
     
-    ax2.plot(t, O2, color="tab:red", linestyle="-.", label="Oxygen (µM)")
-    ax2.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide (µM)")
+    ax2.plot(t, O2, color="tab:red", linestyle="-.", label="Oxygen in film (µM)")
+    ax2.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide in film (µM)")
     
     ax2.set_ylabel("Oxygen / H₂O₂ (µM)")
     
