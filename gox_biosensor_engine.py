@@ -10,7 +10,10 @@ Created on Wed Dec 31 23:24:15 2025
 import numpy as np
 from scipy.integrate import solve_ivp
 
-
+# Cylindrical electrode: length = 2 mm, diameter = 0.1 mm
+# Side area only (film-coated): A = 2π r L
+ELECTRODE_AREA_MM2 = 2 * np.pi * 0.05 * 2   # ≈ 0.628 mm²
+A_m2 = ELECTRODE_AREA_MM2 * 1e-6
 # ---------------------------------------------------------
 # Constants
 # ---------------------------------------------------------
@@ -221,7 +224,17 @@ def run_gox_simulation(
 
     # Approximate current ∝ d[H2O2]/dt
     dH2O2_dt = np.gradient(H2O2, t)
-    current_AU = CURRENT_SCALE * dH2O2_dt
+    # Convert electrode area from mm² → m²
+    A_m2 = ELECTRODE_AREA_MM2 * 1e-6
+
+    # Convert d[H2O2]/dt from M/s → mol/m³/s
+    dH2O2_dt_m3 = dH2O2_dt * 1000.0
+
+    # Faradaic current in Amps
+    I_amp = 2 * 96485 * A_m2 * dH2O2_dt_m3
+
+    # Convert to microamps
+    current_uA = I_amp * 1e6
 
     result = {
         "t": t,
@@ -234,7 +247,7 @@ def run_gox_simulation(
         "glucose_sample_mM": glucose_sample_mM,
         "glucose_film_M": glu_film_M,
         "glucose_film_mM": glu_film_M * 1e3,
-        "current_AU": current_AU,
+        "current_uA": current_uA,
     }
 
     return result
