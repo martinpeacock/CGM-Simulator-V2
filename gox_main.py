@@ -114,18 +114,24 @@ sidebar.write(f"Effective [GOx] = {E_tot_mM_sim:.3g} mM")
 # -----------------------------
 sidebar.subheader("Oxygen")
 
-# Initial oxygen in the film (µM)
 O2_ppm = sidebar.selectbox(
-    "Initial O₂ concentration in film (ppm)",
+    "Initial O₂ in film (ppm)",
     [0, 1, 2, 3, 4, 5, 6],
     index=6
 )
 
-# Oxygen concentration in the sample/bath (µM)
 O2_bath_ppm = sidebar.selectbox(
     "Sample O₂ (ppm)",
     [0, 1, 2, 3, 4, 5, 6],
     index=6
+)
+
+K_O2_MASS = sidebar.slider(
+    "O₂ mass-transfer coefficient (1/s)",
+    min_value=0.0,
+    max_value=5.0,
+    value=0.05,
+    step=0.01,
 )
 
 # NEW: continuous mass‑transfer coefficient slider
@@ -135,6 +141,26 @@ K_O2_MASS = sidebar.slider(
     max_value=5.0,
     value=0.1,
     step=0.01
+)
+# -----------------------------
+# Hydrogen Peroxide Depletion
+# -----------------------------
+sidebar.subheader("H₂O₂ Depletion")
+
+K_H2O2_ELECTRODE = sidebar.slider(
+    "Electrode oxidation rate (1/s)",
+    min_value=0.0,
+    max_value=5.0,
+    value=0.1,
+    step=0.01,
+)
+
+K_H2O2_MASS = sidebar.slider(
+    "H₂O₂ mass-transfer coefficient (1/s)",
+    min_value=0.0,
+    max_value=5.0,
+    value=0.1,
+    step=0.01,
 )
 # -----------------------------
 # Run button
