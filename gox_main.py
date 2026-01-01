@@ -148,7 +148,7 @@ if run_sim:
     t = result["t"]
     ES = result["ES_M"]
     Ered = result["Ered_M"]
-    P = result["P_M"] * 1e3
+    Gluconolactone = result["P_M"] * 1e3
     H2O2 = result["H2O2_M"] * 1e3
     O2 = result["O2_M"] * 1e3
     glucose_sample_mM = result["glucose_sample_mM"]
@@ -164,7 +164,7 @@ if run_sim:
     # -----------------------------
     st.subheader("Film Species")
     fig1, ax1 = plt.subplots(figsize=(8,5))
-    ax1.plot(t, P, label="P (mM)")
+    ax1.plot(t, Gluconolactone, label="Gluconolactone (µM)")
     ax1.plot(t, H2O2, label="H₂O₂ (mM)")
     ax1.set_xlabel("Time (s)")
     ax1.set_ylabel("Concentration (mM)")
