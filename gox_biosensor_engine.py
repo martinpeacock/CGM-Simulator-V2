@@ -58,18 +58,19 @@ def build_glucose_profile(glucose_steps_mM, step_duration_s, n_points):
 
 def gox_ode_system(t, y, params):
     """
-    ODEs for reduced GOx ping-pong mechanism.
+    ODEs for reduced GOx ping-pong mechanism with glucose in film.
 
-    y = [ES, E_red, P, O2, H2O2]
+    y = [ES, E_red, P, O2, H2O2, glu_film]
 
     params dict:
         k1, km1, k2, k3
         E_tot_M
         O2_mode
         O2_bath_M
-        t_grid, glu_M_grid
+        k_glu_mass
+        t_grid, glu_sample_M_grid
     """
-    ES, E_red, P, O2, H2O2 = y
+    ES, E_red, P, O2, H2O2, glu_film_M = y
 
     k1 = params["k1"]
     km1 = params["km1"]
@@ -78,20 +79,23 @@ def gox_ode_system(t, y, params):
     E_tot_M = params["E_tot_M"]
     O2_mode = params["O2_mode"]
     O2_bath_M = params["O2_bath_M"]
+    k_glu_mass = params["k_glu_mass"]
     t_grid = params["t_grid"]
-    glu_M_grid = params["glu_M_grid"]
+    glu_sample_M_grid = params["glu_sample_M_grid"]
 
     # Enzyme conservation
     E_free = E_tot_M - ES - E_red
     if E_free < 0:
         E_free = 0.0
 
-    # Glucose at time t via interpolation
-    glu_M = np.interp(t, t_grid, glu_M_grid)
+    # Glucose in sample at time t
+    glu_sample_M = np.interp(t, t_grid, glu_sample_M_grid)
 
-    # Reactions:
-    # E + Glu ⇌ ES → E_red + P
-    v_bind = k1 * E_free * glu_M
+    # Mass transport of glucose into film
+    d_glu_film = k_glu_mass * (glu_sample_M - glu_film_M)
+
+    # Reactions with glucose IN THE FILM
+    v_bind = k1 * E_free * glu_film_M
     v_unbind = km1 * ES
     v_cat = k2 * ES
 
@@ -118,8 +122,7 @@ def gox_ode_system(t, y, params):
 
     dO2 = -v_ox + J_O2
 
-    return [dES, dE_red, dP, dO2, dH2O2]
-
+    return [dES, dE_red, dP, dO2, dH2O2, d_glu_film]
 
 # ---------------------------------------------------------
 # Main simulation function
@@ -137,14 +140,13 @@ def run_gox_simulation(
     glucose_steps_mM,
     step_duration_s,
     n_points=2000,
+    k_glu_mass=0.2,  # s^-1, mass transfer rate for glucose
 ):
     """
-    Run GOx biosensor simulation with educational refinements:
-
-    - Enzyme input in mM (typically derived from Units in UI)
-    - Oxygen inputs in ppm (converted internally to M)
-    - Glucose protocol as steps in mM
-    - Reduced ping-pong mechanism
+    GOx biosensor simulation with:
+    - Enzyme in mM (inside immobilized film)
+    - Oxygen in ppm (converted internally)
+    - Glucose in sample (steps, mM) and in film (mass transport)
     - Current ∝ d[H2O2]/dt
 
     Returns dict with keys:
@@ -154,19 +156,21 @@ def run_gox_simulation(
         "P_M"
         "O2_M"
         "H2O2_M"
-        "glucose_M"
-        "glucose_mM"
+        "glucose_sample_M"
+        "glucose_sample_mM"
+        "glucose_film_M"
+        "glucose_film_mM"
         "current_AU"
     """
 
-    # Time grid and glucose profile
-    t, glucose_M, glucose_mM = build_glucose_profile(
+    # Time grid and glucose profile (sample)
+    t, glucose_sample_M, glucose_sample_mM = build_glucose_profile(
         glucose_steps_mM=glucose_steps_mM,
         step_duration_s=step_duration_s,
         n_points=n_points,
     )
 
-    # Enzyme total in M
+    # Enzyme total in M (immobilized in film)
     E_tot_M = E_tot_mM * 1e-3  # mM → M
 
     # Oxygen in M
@@ -180,7 +184,10 @@ def run_gox_simulation(
     O20 = O2_0_M
     H2O20 = 0.0
 
-    y0 = [ES0, Ered0, P0, O20, H2O20]
+    # Start with film glucose equal to sample glucose at t=0
+    glu_film0 = glucose_sample_M[0]
+
+    y0 = [ES0, Ered0, P0, O20, H2O20, glu_film0]
 
     params = {
         "k1": k1,
@@ -190,11 +197,11 @@ def run_gox_simulation(
         "E_tot_M": E_tot_M,
         "O2_mode": O2_mode,
         "O2_bath_M": O2_bath_M,
+        "k_glu_mass": k_glu_mass,
         "t_grid": t,
-        "glu_M_grid": glucose_M,
+        "glu_sample_M_grid": glucose_sample_M,
     }
 
-    # Integrate ODEs
     sol = solve_ivp(
         fun=lambda tt, yy: gox_ode_system(tt, yy, params),
         t_span=(t[0], t[-1]),
@@ -210,6 +217,7 @@ def run_gox_simulation(
     P = sol.y[2, :]
     O2 = sol.y[3, :]
     H2O2 = sol.y[4, :]
+    glu_film_M = sol.y[5, :]
 
     # Approximate current ∝ d[H2O2]/dt
     dH2O2_dt = np.gradient(H2O2, t)
@@ -222,8 +230,10 @@ def run_gox_simulation(
         "P_M": P,
         "O2_M": O2,
         "H2O2_M": H2O2,
-        "glucose_M": glucose_M,
-        "glucose_mM": glucose_mM,
+        "glucose_sample_M": glucose_sample_M,
+        "glucose_sample_mM": glucose_sample_mM,
+        "glucose_film_M": glu_film_M,
+        "glucose_film_mM": glu_film_M * 1e3,
         "current_AU": current_AU,
     }
 
