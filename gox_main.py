@@ -16,12 +16,15 @@ from gox_biosensor_engine import run_gox_simulation
 # Constants
 # ---------------------------------------------------------
 
-ELECTRODE_AREA_MM2 = 0.2  # mm²
+# Cylindrical electrode: length = 2 mm, diameter = 0.1 mm
+# Side area only (film-coated): A = 2π r L
+ELECTRODE_AREA_MM2 = 2 * np.pi * 0.05 * 2   # ≈ 0.628 mm²
 
 
 def units_per_electrode_to_mM(E_units, film_thickness_um, kcat_s_inv):
     """
-    Convert enzyme loading in Units per electrode → effective mM inside the film.
+    Convert enzyme loading in Units per electrode → effective mM inside the film,
+    using the correct cylindrical electrode geometry.
     """
     if E_units <= 0 or film_thickness_um <= 0 or kcat_s_inv <= 0:
         return 0.0
@@ -30,7 +33,7 @@ def units_per_electrode_to_mM(E_units, film_thickness_um, kcat_s_inv):
     rate_mol_per_s = E_units * 1e-6 / 60.0
     n_E_mol = rate_mol_per_s / kcat_s_inv
 
-    # Film volume in liters: mm² * µm * 1e-9
+    # Film volume in liters: (electrode area mm²) * (thickness µm) * 1e-9
     V_film_L = ELECTRODE_AREA_MM2 * film_thickness_um * 1e-9
     if V_film_L <= 0:
         return 0.0
