@@ -144,7 +144,8 @@ if run_sim:
     P = result["P_M"] * 1e3
     H2O2 = result["H2O2_M"] * 1e3
     O2 = result["O2_M"] * 1e3
-    glucose_mM = result["glucose_mM"]
+    glucose_sample_mM = result["glucose_sample_mM"]
+    glucose_film_mM = result["glucose_film_mM"]
     current = result["current_AU"]
 
     # =====================================================
