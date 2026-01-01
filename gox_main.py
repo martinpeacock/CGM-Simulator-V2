@@ -150,7 +150,7 @@ if run_sim:
     Ered = result["Ered_M"]
     Gluconolactone = result["P_M"] * 1e3
     H2O2 = result["H2O2_M"] * 1e3
-    O2 = result["O2_M"] * 1e3
+    O2 = result["O2_M"] * 1e3  # convert M → µM
     glucose_sample_mM = result["glucose_sample_mM"]
     glucose_film_mM = result["glucose_film_mM"]
     current = result["current_uA"]
@@ -189,6 +189,7 @@ if run_sim:
     ax_glu.plot(t, glucose_sample_mM, color="tab:blue", label="Glucose in sample (mM)")
     ax_glu.plot(t, glucose_film_mM, color="tab:orange", linestyle="--", label="Glucose in film (mM)")
     ax_glu.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide (µM)")
+    ax_glu.plot(t, O2, color="tab:red", linestyle="-.", label="Oxygen (µM)")
     
     ax_glu.set_xlabel("Time (s)")
     ax_glu.set_ylabel("Concentration (mM / µM)")
