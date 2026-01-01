@@ -143,6 +143,18 @@ K_O2_MASS = sidebar.slider(
     step=0.01
 )
 # -----------------------------
+# Oxygen mass transfer
+# -----------------------------
+st.sidebar.subheader("Oxygen Transport")
+
+K_O2_MASS = st.sidebar.slider(
+    "O₂ mass-transfer coefficient (1/s)",
+    min_value=0.0,
+    max_value=5.0,
+    value=0.05,
+    step=0.01,
+)
+# -----------------------------
 # Hydrogen Peroxide Depletion
 # -----------------------------
 sidebar.subheader("H₂O₂ Depletion")
