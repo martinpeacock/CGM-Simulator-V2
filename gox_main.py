@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 31 23:26:09 2025
+Created on Thu Jan  1 14:13:47 2026
 
 @author: martp
+"""
+
+# -*- coding: utf-8 -*-
+"""
+GOx Biosensor Simulator – Streamlit App
 """
 
 import numpy as np
@@ -20,16 +25,17 @@ from gox_biosensor_engine import run_gox_simulation
 # Side area only (film-coated): A = 2π r L
 ELECTRODE_AREA_MM2 = 2 * np.pi * 0.05 * 2   # ≈ 0.628 mm²
 
+
 def compute_k_glu_mass(film_thickness_um, D_glu=5e-10):
     L_m = film_thickness_um * 1e-6
     if L_m <= 0:
         return 0.0
     return D_glu / (L_m ** 2)
 
+
 def units_per_electrode_to_mM(E_units, film_thickness_um, kcat_s_inv):
     """
-    Convert enzyme loading in Units per electrode → effective mM inside the film,
-    using the correct cylindrical electrode geometry.
+    Convert enzyme loading in Units per electrode → effective mM inside the film.
     """
     if E_units <= 0 or film_thickness_um <= 0 or kcat_s_inv <= 0:
         return 0.0
@@ -65,8 +71,8 @@ sidebar.header("Simulation Controls")
 # -----------------------------
 sidebar.subheader("Bulk Glucose Steps")
 
-n_steps = sidebar.slider("Number of glucose steps", 1, 10, 6)
-step_duration = sidebar.slider("Step duration (s)", 50, 1000, 150, 10)
+n_steps = sidebar.slider("Number of glucose steps", 1, 10, 6, key="n_steps")
+step_duration = sidebar.slider("Step duration (s)", 50, 1000, 150, 10, key="step_duration")
 
 default_concs = [0, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 glucose_steps_mM = []
@@ -88,9 +94,9 @@ for i in range(n_steps):
 # -----------------------------
 sidebar.subheader("Kinetics")
 
-Km_glu_mM = sidebar.slider("Km (mM)", 0.1, 50.0, 10.0, 0.1)
-kcat_glu = sidebar.slider("kcat (s⁻¹)", 0.01, 500.0, 100.0, 0.5)
-k3 = sidebar.slider("k3 (M⁻¹ s⁻¹)", 0.01, 1e4, 100.0, 1.0)
+Km_glu_mM = sidebar.slider("Km (mM)", 0.1, 50.0, 10.0, 0.1, key="km_glu")
+kcat_glu = sidebar.slider("kcat (s⁻¹)", 0.01, 500.0, 100.0, 0.5, key="kcat")
+k3 = sidebar.slider("k3 (M⁻¹ s⁻¹)", 0.01, 1e4, 100.0, 1.0, key="k3")
 
 Km_glu_M = Km_glu_mM * 1e-3
 km1 = 1.0
@@ -102,10 +108,12 @@ k1 = (km1 + k2) / Km_glu_M if Km_glu_M > 0 else 0.0
 # -----------------------------
 sidebar.subheader("Enzyme Loading")
 
-E_units = sidebar.slider("GOx loading (U)", 0.01, 10.0, 1.0, 0.01)
-film_thickness_um = sidebar.slider("Film thickness (µm)", 1.0, 200.0, 20.0, 1.0)
+E_units = sidebar.slider("GOx loading (U)", 0.01, 10.0, 1.0, 0.01, key="e_units")
+film_thickness_um = sidebar.slider("Film thickness (µm)", 1.0, 200.0, 20.0, 1.0, key="film_thickness")
+
 k_glu_mass = compute_k_glu_mass(film_thickness_um)
 sidebar.write(f"Effective glucose mass transfer rate = {k_glu_mass:.3e} s⁻¹")
+
 E_tot_mM_sim = units_per_electrode_to_mM(E_units, film_thickness_um, kcat_glu)
 sidebar.write(f"Effective [GOx] = {E_tot_mM_sim:.3g} mM")
 
@@ -117,43 +125,27 @@ sidebar.subheader("Oxygen")
 O2_ppm = sidebar.selectbox(
     "Initial O₂ in film (ppm)",
     [0, 1, 2, 3, 4, 5, 6],
-    index=6
+    index=6,
+    key="o2_initial"
 )
 
 O2_bath_ppm = sidebar.selectbox(
     "Sample O₂ (ppm)",
     [0, 1, 2, 3, 4, 5, 6],
-    index=6
+    index=6,
+    key="o2_bath"
 )
 
+# SINGLE UNIQUE SLIDER
 K_O2_MASS = sidebar.slider(
     "O₂ mass-transfer coefficient (1/s)",
     min_value=0.0,
     max_value=5.0,
     value=0.05,
     step=0.01,
+    key="k_o2_mass"
 )
 
-# NEW: continuous mass‑transfer coefficient slider
-K_O2_MASS = sidebar.slider(
-    "O₂ mass‑transfer coefficient (1/s)",
-    min_value=0.0,
-    max_value=5.0,
-    value=0.1,
-    step=0.01
-)
-# -----------------------------
-# Oxygen mass transfer
-# -----------------------------
-st.sidebar.subheader("Oxygen Transport")
-
-K_O2_MASS = st.sidebar.slider(
-    "O₂ mass-transfer coefficient (1/s)",
-    min_value=0.0,
-    max_value=5.0,
-    value=0.05,
-    step=0.01,
-)
 # -----------------------------
 # Hydrogen Peroxide Depletion
 # -----------------------------
@@ -165,6 +157,7 @@ K_H2O2_ELECTRODE = sidebar.slider(
     max_value=5.0,
     value=0.1,
     step=0.01,
+    key="k_h2o2_electrode"
 )
 
 K_H2O2_MASS = sidebar.slider(
@@ -173,11 +166,13 @@ K_H2O2_MASS = sidebar.slider(
     max_value=5.0,
     value=0.1,
     step=0.01,
+    key="k_h2o2_mass"
 )
+
 # -----------------------------
 # Run button
 # -----------------------------
-run_sim = sidebar.button("Run Simulation")
+run_sim = sidebar.button("Run Simulation", key="run_button")
 
 # =========================================================
 # SIMULATION
@@ -223,14 +218,14 @@ if run_sim:
     st.subheader("Film Species")
     fig1, ax1 = plt.subplots(figsize=(8,5))
     ax1.plot(t, Gluconolactone, label="Gluconolactone (µM)")
-    ax1.plot(t, H2O2, label="H₂O₂ (mM)")
+    ax1.plot(t, H2O2, label="H₂O₂ (µM)")
     ax1.set_xlabel("Time (s)")
-    ax1.set_ylabel("Concentration (mM)")
+    ax1.set_ylabel("Concentration (µM)")
     ax1.grid(True)
 
     ax2 = ax1.twinx()
-    ax2.plot(t, O2, color="red", linestyle="--", label="O₂ (mM)")
-    ax2.set_ylabel("O₂ (mM)", color="red")
+    ax2.plot(t, O2, color="red", linestyle="--", label="O₂ (µM)")
+    ax2.set_ylabel("O₂ (µM)", color="red")
 
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
@@ -238,33 +233,26 @@ if run_sim:
 
     st.pyplot(fig1)
 
-   # -----------------------------
-    # Glucose in sample vs film + O2 + H2O2
+    # -----------------------------
+    # Glucose, Oxygen, H2O2
     # -----------------------------
     st.subheader("Glucose, Oxygen, and Hydrogen Peroxide")
-    
-    fig2, ax_glu = plt.subplots(figsize=(10,3))
-    fig2.subplots_adjust(right=0.75)  # shift plot left to make room for legend
 
-    
-    # --- Y1 axis (left): Glucose ---
+    fig2, ax_glu = plt.subplots(figsize=(10,3))
+    fig2.subplots_adjust(right=0.75)
+
     ax_glu.plot(t, glucose_sample_mM, color="tab:blue", label="Glucose in sample (mM)")
     ax_glu.plot(t, glucose_film_mM, color="tab:orange", linestyle="--", label="Glucose in film (mM)")
-    
+
     ax_glu.set_xlabel("Time (s)")
     ax_glu.set_ylabel("Glucose (mM)")
     ax_glu.grid(True)
-    
-    # --- Y2 axis (right): O2 + H2O2 ---
+
     ax2 = ax_glu.twinx()
-    
     ax2.plot(t, O2, color="tab:red", linestyle="-.", label="Oxygen in film (µM)")
     ax2.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide in film (µM)")
-    
     ax2.set_ylabel("Oxygen / H₂O₂ (µM)")
-    
-    # --- Combined legend ---
-    # We need to merge handles from both axes
+
     lines1, labels1 = ax_glu.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax_glu.legend(
@@ -272,11 +260,11 @@ if run_sim:
         labels1 + labels2,
         loc="lower right",
         frameon=False,
-        fontsize=6 # options: "small", "x-small", or even 6
+        fontsize=6
     )
-    
-    
+
     st.pyplot(fig2)
+
     # -----------------------------
     # Current
     # -----------------------------
