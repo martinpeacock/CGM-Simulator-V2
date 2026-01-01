@@ -207,7 +207,13 @@ if run_sim:
     # We need to merge handles from both axes
     lines1, labels1 = ax_glu.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax_glu.legend(lines1 + lines2, labels1 + labels2, loc="best")
+    ax_glu.legend(
+        lines1 + lines2,
+        labels1 + labels2,
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=False,
+    )
     
     st.pyplot(fig2)
     # -----------------------------
