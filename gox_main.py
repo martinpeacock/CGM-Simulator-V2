@@ -179,13 +179,15 @@ if run_sim:
         k2=k2,
         k3=k3,
         E_tot_mM=E_tot_mM_sim,
-        K_O2_MASS=K_O2_MASS,
         O2_0_ppm=O2_ppm,
         O2_bath_ppm=O2_bath_ppm,
         glucose_steps_mM=glucose_steps_mM,
         step_duration_s=step_duration,
         n_points=2000,
         k_glu_mass=k_glu_mass,
+        K_O2_MASS=K_O2_MASS,
+        K_H2O2_ELECTRODE=K_H2O2_ELECTRODE,
+        K_H2O2_MASS=K_H2O2_MASS,
     )
 
     # Extract outputs
