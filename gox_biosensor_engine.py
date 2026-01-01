@@ -231,7 +231,7 @@ def run_gox_simulation(
         t_span=(t[0], t[-1]),
         y0=y0,
         t_eval=t,
-        method="LSODA",
+        method="RK45",
         rtol=1e-6,
         atol=1e-9,
     )
