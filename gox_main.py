@@ -174,16 +174,20 @@ if run_sim:
     st.pyplot(fig1)
 
     # -----------------------------
-    # Glucose protocol
+    # Glucose in sample vs in film
     # -----------------------------
-    st.subheader("Glucose Input")
+    st.subheader("Glucose in sample and film")
     fig2, ax_glu = plt.subplots(figsize=(8,3))
-    ax_glu.plot(t, glucose_mM, color="purple")
+    
+    ax_glu.plot(t, glucose_sample_mM, color="tab:blue", label="Glucose in sample (mM)")
+    ax_glu.plot(t, glucose_film_mM, color="tab:orange", linestyle="--", label="Glucose in film (mM)")
+    
     ax_glu.set_xlabel("Time (s)")
     ax_glu.set_ylabel("Glucose (mM)")
     ax_glu.grid(True)
+    ax_glu.legend(loc="best")
+    
     st.pyplot(fig2)
-
     # -----------------------------
     # Current
     # -----------------------------
