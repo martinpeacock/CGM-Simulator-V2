@@ -1,32 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 31 23:24:15 2025
+Created on Thu Jan  1 11:55:56 2026
 
 @author: martp
 """
 
-# gox_biosensor_engine.py
+# -*- coding: utf-8 -*-
+"""
+GOx biosensor physics engine
+
+Reduced GOx ping-pong mechanism with glucose in film and
+oxygen mass transfer from sample (bath) into the film.
+
+Clean, minimal version with:
+- No O2_mode
+- Continuous O2 mass-transfer coefficient K_O2_MASS
+"""
 
 import numpy as np
 from scipy.integrate import solve_ivp
 
+# ---------------------------------------------------------
+# Geometry and constants
+# ---------------------------------------------------------
+
 # Cylindrical electrode: length = 2 mm, diameter = 0.1 mm
 # Side area only (film-coated): A = 2π r L
 ELECTRODE_AREA_MM2 = 2 * np.pi * 0.05 * 2   # ≈ 0.628 mm²
-A_m2 = ELECTRODE_AREA_MM2 * 1e-6
-# ---------------------------------------------------------
-# Constants
-# ---------------------------------------------------------
+ELECTRODE_AREA_M2 = ELECTRODE_AREA_MM2 * 1e-6  # mm² → m²
 
 # Henry's law-based conversion for O2 ppm → M
 # 1 ppm ~ 1 mg/L; O2 MW = 32 g/mol → 1 ppm ≈ 3.125e-5 M
 O2_PPM_TO_M = 3.125e-5  # rough teaching value, good enough for simulation
-
-# Oxygen mass transfer coefficient for well-aerated mode (s⁻¹)
-K_O2_MASS = 0.05  # adjustable educational parameter
-
-# Scaling factor for current (arbitrary units)
-CURRENT_SCALE = 1.0
 
 
 # ---------------------------------------------------------
@@ -37,6 +42,15 @@ def build_glucose_profile(glucose_steps_mM, step_duration_s, n_points):
     """
     Build time array and corresponding glucose concentration in M
     from a step protocol defined in mM.
+
+    glucose_steps_mM: iterable of step levels in mM
+    step_duration_s: duration of each step in seconds
+    n_points: number of time points in the simulation
+
+    Returns:
+        t                (s)
+        glucose_M        (M)
+        glucose_mM       (mM)
     """
     glucose_steps_mM = list(glucose_steps_mM)
     n_steps = len(glucose_steps_mM)
@@ -63,15 +77,17 @@ def gox_ode_system(t, y, params):
     """
     ODEs for reduced GOx ping-pong mechanism with glucose in film.
 
-    y = [ES, E_red, P, O2, H2O2, glu_film]
+    State vector:
+        y = [ES, E_red, P, O2, H2O2, glu_film]
 
-    params dict:
+    params dict keys:
         k1, km1, k2, k3
         E_tot_M
-        O2_mode
         O2_bath_M
+        K_O2_MASS
         k_glu_mass
-        t_grid, glu_sample_M_grid
+        t_grid
+        glu_sample_M_grid
     """
     ES, E_red, P, O2, H2O2, glu_film_M = y
 
@@ -80,18 +96,18 @@ def gox_ode_system(t, y, params):
     k2 = params["k2"]
     k3 = params["k3"]
     E_tot_M = params["E_tot_M"]
-    O2_mode = params["O2_mode"]
     O2_bath_M = params["O2_bath_M"]
+    K_O2_MASS = params["K_O2_MASS"]
     k_glu_mass = params["k_glu_mass"]
     t_grid = params["t_grid"]
     glu_sample_M_grid = params["glu_sample_M_grid"]
 
     # Enzyme conservation
     E_free = E_tot_M - ES - E_red
-    if E_free < 0:
+    if E_free < 0.0:
         E_free = 0.0
 
-    # Glucose in sample at time t
+    # Glucose in sample at time t (interpolated from protocol)
     glu_sample_M = np.interp(t, t_grid, glu_sample_M_grid)
 
     # Mass transport of glucose into film
@@ -117,12 +133,12 @@ def gox_ode_system(t, y, params):
     # dH2O2/dt
     dH2O2 = v_ox
 
-    # O2 dynamics
+    # O2 dynamics: consumption + mass transfer from bath
     J_O2 = K_O2_MASS * (O2_bath_M - O2)
-
     dO2 = -v_ox + J_O2
 
     return [dES, dE_red, dP, dO2, dH2O2, d_glu_film]
+
 
 # ---------------------------------------------------------
 # Main simulation function
@@ -134,19 +150,20 @@ def run_gox_simulation(
     k2,
     k3,
     E_tot_mM,
-    O2_mode,
     O2_0_ppm,
     O2_bath_ppm,
     glucose_steps_mM,
     step_duration_s,
     n_points=2000,
-    k_glu_mass=0.2,  # s^-1, mass transfer rate for glucose
+    k_glu_mass=0.2,   # s^-1, mass transfer rate for glucose
+    K_O2_MASS=0.05,   # s^-1, O2 mass-transfer coefficient (overwritten by Streamlit slider)
 ):
     """
     GOx biosensor simulation with:
     - Enzyme in mM (inside immobilized film)
-    - Oxygen in ppm (converted internally)
+    - Oxygen in ppm (converted internally to M)
     - Glucose in sample (steps, mM) and in film (mass transport)
+    - Oxygen mass transfer from bath to film
     - Current ∝ d[H2O2]/dt
 
     Returns dict with keys:
@@ -160,15 +177,20 @@ def run_gox_simulation(
         "glucose_sample_mM"
         "glucose_film_M"
         "glucose_film_mM"
-        "current_AU"
+        "current_uA"
     """
 
-    # Time grid and glucose profile (sample)
-    t, glucose_sample_M, glucose_sample_mM = build_glucose_profile(
+    # Time grid and glucose profile in the sample
+    t_grid, glu_sample_M_grid, glu_sample_mM_grid = build_glucose_profile(
         glucose_steps_mM=glucose_steps_mM,
         step_duration_s=step_duration_s,
         n_points=n_points,
     )
+
+    # For convenience, use t_grid as the simulation time vector
+    t = t_grid
+    glucose_sample_M = glu_sample_M_grid
+    glucose_sample_mM = glu_sample_mM_grid
 
     # Enzyme total in M (immobilized in film)
     E_tot_M = E_tot_mM * 1e-3  # mM → M
@@ -189,19 +211,21 @@ def run_gox_simulation(
 
     y0 = [ES0, Ered0, P0, O20, H2O20, glu_film0]
 
-    params = {
-        "k1": k1,
-        "km1": km1,
-        "k2": k2,
-        "k3": k3,
-        "E_tot_M": E_tot_M,
-        "O2_mode": O2_mode,
-        "O2_bath_M": O2_bath_M,
-        "k_glu_mass": k_glu_mass,   # ← ADD THIS LINE
-        "t_grid": t,
-        "glu_sample_M_grid": glucose_sample_M,
-}       
+    # Pack parameters for ODE system
+    params = dict(
+        k1=k1,
+        km1=km1,
+        k2=k2,
+        k3=k3,
+        E_tot_M=E_tot_M,
+        O2_bath_M=O2_bath_M,
+        K_O2_MASS=K_O2_MASS,
+        k_glu_mass=k_glu_mass,
+        t_grid=t_grid,
+        glu_sample_M_grid=glu_sample_M_grid,
+    )
 
+    # Solve ODE system
     sol = solve_ivp(
         fun=lambda tt, yy: gox_ode_system(tt, yy, params),
         t_span=(t[0], t[-1]),
@@ -221,14 +245,12 @@ def run_gox_simulation(
 
     # Approximate current ∝ d[H2O2]/dt
     dH2O2_dt = np.gradient(H2O2, t)
-    # Convert electrode area from mm² → m²
-    A_m2 = ELECTRODE_AREA_MM2 * 1e-6
 
     # Convert d[H2O2]/dt from M/s → mol/m³/s
     dH2O2_dt_m3 = dH2O2_dt * 1000.0
 
-    # Faradaic current in Amps
-    I_amp = 2 * 96485 * A_m2 * dH2O2_dt_m3
+    # Faradaic current in Amps: I = n F A dC/dt (n = 2 for H2O2)
+    I_amp = 2 * 96485 * ELECTRODE_AREA_M2 * dH2O2_dt_m3
 
     # Convert to microamps
     current_uA = I_amp * 1e6
