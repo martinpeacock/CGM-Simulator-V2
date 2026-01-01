@@ -213,6 +213,7 @@ if run_sim:
         loc="center left",
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
+        fontsize="small"  # or use "x-small" if needed
     )
     
     st.pyplot(fig2)
