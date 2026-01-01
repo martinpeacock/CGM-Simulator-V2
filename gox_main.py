@@ -115,7 +115,7 @@ sidebar.write(f"Effective [GOx] = {E_tot_mM_sim:.3g} mM")
 sidebar.subheader("Oxygen")
 
 O2_ppm = sidebar.selectbox("Initial O₂ in film (ppm)", [0,1,2,3,4,5,6], index=6)
-O2_bath_ppm = sidebar.selectbox("Bath O₂ (ppm)", [0,1,2,3,4,5,6], index=6)
+O2_bath_ppm = sidebar.selectbox("Sample O₂ (ppm)", [0,1,2,3,4,5,6], index=6)
 O2_mode = sidebar.selectbox("O₂ mode", ["closed", "well-aerated"], index=0)
 
 # -----------------------------
