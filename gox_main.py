@@ -214,7 +214,7 @@ if run_sim:
         labels1 + labels2,
         loc="lower right",
         frameon=False,
-        fontsize="x-small" # options: "small", "x-small", or even 6
+        fontsize=6 # options: "small", "x-small", or even 6
     )
     
     
