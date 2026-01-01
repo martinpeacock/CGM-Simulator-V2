@@ -188,9 +188,10 @@ if run_sim:
     
     ax_glu.plot(t, glucose_sample_mM, color="tab:blue", label="Glucose in sample (mM)")
     ax_glu.plot(t, glucose_film_mM, color="tab:orange", linestyle="--", label="Glucose in film (mM)")
+    ax_glu.plot(t, H2O2, color="tab:green", linestyle=":", label="Hydrogen peroxide (µM)")
     
     ax_glu.set_xlabel("Time (s)")
-    ax_glu.set_ylabel("Glucose (mM)")
+    ax_glu.set_ylabel("Concentration (mM / µM)")
     ax_glu.grid(True)
     ax_glu.legend(loc="best")
     
