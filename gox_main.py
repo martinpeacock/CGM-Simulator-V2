@@ -153,7 +153,7 @@ if run_sim:
     O2 = result["O2_M"] * 1e3
     glucose_sample_mM = result["glucose_sample_mM"]
     glucose_film_mM = result["glucose_film_mM"]
-    current = result["current_AU"]
+    current = result["current_uA"]
 
     # =====================================================
     # PLOTS
@@ -202,6 +202,6 @@ if run_sim:
     fig3, ax_cur = plt.subplots(figsize=(8,3))
     ax_cur.plot(t, current, color="black")
     ax_cur.set_xlabel("Time (s)")
-    ax_cur.set_ylabel("Current (A.U.)")
+    ax_cur.set_ylabel("Current (µA)")
     ax_cur.grid(True)
     st.pyplot(fig3)
