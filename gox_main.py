@@ -212,11 +212,11 @@ if run_sim:
     ax_glu.legend(
         lines1 + lines2,
         labels1 + labels2,
-        loc="center left",
-        bbox_to_anchor=(1.0, 0.5),
+        loc="lower right",
         frameon=False,
-        fontsize="small"  # or use "x-small" if needed
-    )
+        fontsize="small"
+)
+    
     
     st.pyplot(fig2)
     # -----------------------------
