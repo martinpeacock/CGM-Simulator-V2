@@ -153,7 +153,7 @@ if run_sim:
         k2=k2,
         k3=k3,
         E_tot_mM=E_tot_mM_sim,
-        O2_mode=O2_mode,
+        K_O2_MASS=K_O2_MASS,
         O2_0_ppm=O2_ppm,
         O2_bath_ppm=O2_bath_ppm,
         glucose_steps_mM=glucose_steps_mM,
