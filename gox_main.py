@@ -214,8 +214,8 @@ if run_sim:
         labels1 + labels2,
         loc="lower right",
         frameon=False,
-        fontsize="small"
-)
+        fontsize="x-small" # options: "small", "x-small", or even 6
+    )
     
     
     st.pyplot(fig2)
