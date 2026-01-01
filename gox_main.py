@@ -20,6 +20,11 @@ from gox_biosensor_engine import run_gox_simulation
 # Side area only (film-coated): A = 2π r L
 ELECTRODE_AREA_MM2 = 2 * np.pi * 0.05 * 2   # ≈ 0.628 mm²
 
+def compute_k_glu_mass(film_thickness_um, D_glu=5e-10):
+    L_m = film_thickness_um * 1e-6
+    if L_m <= 0:
+        return 0.0
+    return D_glu / (L_m ** 2)
 
 def units_per_electrode_to_mM(E_units, film_thickness_um, kcat_s_inv):
     """
@@ -99,7 +104,8 @@ sidebar.subheader("Enzyme Loading")
 
 E_units = sidebar.slider("GOx loading (U)", 0.01, 10.0, 1.0, 0.01)
 film_thickness_um = sidebar.slider("Film thickness (µm)", 1.0, 200.0, 20.0, 1.0)
-
+k_glu_mass = compute_k_glu_mass(film_thickness_um)
+sidebar.write(f"Effective glucose mass transfer rate = {k_glu_mass:.3e} s⁻¹")
 E_tot_mM_sim = units_per_electrode_to_mM(E_units, film_thickness_um, kcat_glu)
 sidebar.write(f"Effective [GOx] = {E_tot_mM_sim:.3g} mM")
 
@@ -123,19 +129,20 @@ run_sim = sidebar.button("Run Simulation")
 
 if run_sim:
 
-    result = run_gox_simulation(
-        k1=k1,
-        km1=km1,
-        k2=k2,
-        k3=k3,
-        E_tot_mM=E_tot_mM_sim,
-        O2_mode=O2_mode,
-        O2_0_ppm=O2_ppm,
-        O2_bath_ppm=O2_bath_ppm,
-        glucose_steps_mM=glucose_steps_mM,
-        step_duration_s=step_duration,
-        n_points=2000,
-    )
+result = run_gox_simulation(
+    k1=k1,
+    km1=km1,
+    k2=k2,
+    k3=k3,
+    E_tot_mM=E_tot_mM_sim,
+    O2_mode=O2_mode,
+    O2_0_ppm=O2_ppm,
+    O2_bath_ppm=O2_bath_ppm,
+    glucose_steps_mM=glucose_steps_mM,
+    step_duration_s=step_duration,
+    n_points=2000,
+    k_glu_mass=k_glu_mass,
+)
 
     # Extract outputs
     t = result["t"]
