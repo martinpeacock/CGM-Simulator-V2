@@ -118,10 +118,7 @@ def gox_ode_system(t, y, params):
     dH2O2 = v_ox
 
     # O2 dynamics
-    if O2_mode == "closed":
-        J_O2 = 0.0
-    else:  # "well-aerated"
-        J_O2 = K_O2_MASS * (O2_bath_M - O2)
+    J_O2 = K_O2_MASS * (O2_bath_M - O2)
 
     dO2 = -v_ox + J_O2
 

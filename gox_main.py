@@ -114,10 +114,28 @@ sidebar.write(f"Effective [GOx] = {E_tot_mM_sim:.3g} mM")
 # -----------------------------
 sidebar.subheader("Oxygen")
 
-O2_ppm = sidebar.selectbox("Initial O₂ in film (ppm)", [0,1,2,3,4,5,6], index=6)
-O2_bath_ppm = sidebar.selectbox("Sample O₂ (ppm)", [0,1,2,3,4,5,6], index=6)
-O2_mode = sidebar.selectbox("O₂ mode", ["closed", "well-aerated"], index=0)
+# Initial oxygen in the film (µM)
+O2_ppm = sidebar.selectbox(
+    "Initial O₂ concentration in film (ppm)",
+    [0, 1, 2, 3, 4, 5, 6],
+    index=6
+)
 
+# Oxygen concentration in the sample/bath (µM)
+O2_bath_ppm = sidebar.selectbox(
+    "Sample O₂ (ppm)",
+    [0, 1, 2, 3, 4, 5, 6],
+    index=6
+)
+
+# NEW: continuous mass‑transfer coefficient slider
+K_O2_MASS = sidebar.slider(
+    "O₂ mass‑transfer coefficient (1/s)",
+    min_value=0.0,
+    max_value=5.0,
+    value=0.1,
+    step=0.01
+)
 # -----------------------------
 # Run button
 # -----------------------------
