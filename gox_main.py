@@ -170,9 +170,10 @@ K_H2O2_MASS = sidebar.slider(
 )
 
 # -----------------------------
-# Run button
+# Run button (moved to main area)
 # -----------------------------
-run_sim = sidebar.button("Run Simulation", key="run_button")
+st.subheader("Run Simulation")
+run_sim = st.button("Run Simulation", key="run_button_main")
 
 # =========================================================
 # SIMULATION
